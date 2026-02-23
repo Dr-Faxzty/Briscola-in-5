@@ -46,9 +46,11 @@ POINTS: dict[Rank, int] = {
 }
 
 class Card:
+    __slots__ = ("_suit", "_rank")
+    
     def __init__(self, suit: Suit, rank: Rank) -> None:
-        self.suit = suit
-        self.rank = rank
+        self._suit = suit
+        self._rank = rank
     
     @property
     def suit(self) -> Suit:
@@ -82,7 +84,5 @@ def full_deck() -> list[Card]:
 
 
 def assert_is_valid_deck(deck: list[Card]) -> None:
-    if len(deck) != 40:
-        raise ValueError(f"Deck must have 40 cards, got {len(deck)}")
-    if len(set(deck)) != 40:
-        raise ValueError("Deck contains duplicates")
+    if set(deck) != set(full_deck()):
+        raise ValueError("Deck is not a valid 40-card Sicilian deck")
