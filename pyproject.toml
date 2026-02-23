@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "briscola5"
+version = "0.1.0"
+description = "Briscola in 5 - CLI vs bots (Quality Development project)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Andrea Tirenti" },
+  { name = "Francesco Pietro Rosa" },
+]
+dependencies = [
+  # CLI deps (aggiungete qui quando scegliete la libreria)
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-mock",
+  "pytest-cov",
+  "pylint",
+  "mypy",
+  "flake8",
+  "black",
+  "isort",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+  "-q",
+  "--strict-markers",
+  "--strict-config",
+  "--cov=briscola5",
+  "--cov-report=term-missing",
+  "--cov-report=html",
+  "--cov-fail-under=75",
+]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["briscola5"]
+omit = [
+  "src/briscola5/__init__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+  "raise NotImplementedError",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+src_paths = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+no_implicit_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true
+mypy_path = "src"
+
+[tool.pylint.main]
+py-version = "3.11"
+jobs = 0
+
+[tool.pylint."messages control"]
+disable = [
+  "missing-module-docstring",
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "too-few-public-methods",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+  ".git",
+  "__pycache__",
+  ".venv",
+  "build",
+  "dist",
+  ".pytest_cache",
+  "htmlcov",
+]
