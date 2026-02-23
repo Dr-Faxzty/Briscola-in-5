@@ -1,12 +1,14 @@
 from __future__ import annotations
 from enum import Enum
 
+
 class Suit(str, Enum):
     ORO = "oro"
     COPPE = "coppe"
     SPADE = "spade"
     BASTONI = "bastoni"
-    
+
+
 class Rank(str, Enum):
     ASSO = "A"
     TRE = "3"
@@ -18,7 +20,8 @@ class Rank(str, Enum):
     CINQUE = "5"
     QUATTRO = "4"
     DUE = "2"
-    
+
+
 TRICK_STRENGTH: dict[Rank, int] = {
     Rank.ASSO: 10,
     Rank.TRE: 9,
@@ -29,7 +32,7 @@ TRICK_STRENGTH: dict[Rank, int] = {
     Rank.SEI: 4,
     Rank.CINQUE: 3,
     Rank.QUATTRO: 2,
-    Rank.DUE: 1
+    Rank.DUE: 1,
 }
 
 POINTS: dict[Rank, int] = {
@@ -42,16 +45,17 @@ POINTS: dict[Rank, int] = {
     Rank.SEI: 0,
     Rank.CINQUE: 0,
     Rank.QUATTRO: 0,
-    Rank.DUE: 0
+    Rank.DUE: 0,
 }
+
 
 class Card:
     __slots__ = ("_suit", "_rank")
-    
+
     def __init__(self, suit: Suit, rank: Rank) -> None:
         self._suit = suit
         self._rank = rank
-    
+
     @property
     def suit(self) -> Suit:
         return self._suit
@@ -78,7 +82,8 @@ class Card:
 
     def __hash__(self) -> int:
         return hash((self._suit, self._rank))
-    
+
+
 def full_deck() -> list[Card]:
     return [Card(s, r) for s in Suit for r in Rank]
 
