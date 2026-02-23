@@ -1,4 +1,5 @@
 import pytest
+
 from briscola5.domain.card import (
     Card,
     Suit,
