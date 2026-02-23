@@ -1,13 +1,13 @@
 import pytest
 
 from briscola5.domain.card import (
-    Card,
-    Suit,
-    Rank,
     POINTS,
     TRICK_STRENGTH,
-    full_deck,
+    Card,
+    Rank,
+    Suit,
     assert_is_valid_deck,
+    full_deck,
 )
 
 
