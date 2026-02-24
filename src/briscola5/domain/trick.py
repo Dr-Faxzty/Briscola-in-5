@@ -20,20 +20,13 @@ def trick_points(played: Sequence[PlayedCard]) -> int:
     return sum(pc.card.points for pc in played)
 
 
-def resolve_trick(
-    played: Sequence[PlayedCard], 
-    trump_suit: Suit | None
-    ) -> int:
+def resolve_trick(played: Sequence[PlayedCard], trump_suit: Suit | None) -> int:
     if len(played) != 5:
         raise ValueError(f"Expected 5 played cards, got {len(played)}")
 
     lead_suit = played[0].card.suit
 
-    if (
-        trump_suit is not None and any(
-            pc.card.suit == trump_suit for pc in played
-            )
-        ):
+    if trump_suit is not None and any(pc.card.suit == trump_suit for pc in played):
         winning_suit = trump_suit
     else:
         winning_suit = lead_suit
