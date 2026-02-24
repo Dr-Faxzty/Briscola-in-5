@@ -1,6 +1,6 @@
 import pytest
 
-from briscola5.domain.state import GameState, Phase, PLAYER_COUNT
+from briscola5.domain.state import PLAYER_COUNT, GameState, Phase
 
 
 def test_initial_state_defaults() -> None:
@@ -62,7 +62,7 @@ def test_current_trick_is_complete() -> None:
 
     assert not state.current_trick_is_complete()
 
-    state.trick.played = [object()] * PLAYER_COUNT 
+    state.trick.played = [object()] * PLAYER_COUNT
     assert state.current_trick_is_complete()
 
 
