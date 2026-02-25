@@ -58,13 +58,13 @@ exclude_lines = [
 ]
 
 [tool.black]
-line-length = 88
+line-length = 98
 target-version = ["py311"]
 include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 98
 src_paths = ["src", "tests"]
 
 [tool.mypy]
@@ -90,7 +90,7 @@ disable = [
 ]
 
 [tool.flake8]
-max-line-length = 88
+max-line-length = 98
 extend-ignore = ["E203", "W503"]
 exclude = [
   ".git",
