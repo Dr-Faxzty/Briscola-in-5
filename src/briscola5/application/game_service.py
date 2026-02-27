@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 
-from briscola5.domain.card import Card, full_deck
+from briscola5.domain.card import full_deck
 from briscola5.domain.state import GameState, Phase
 
 
@@ -93,7 +93,7 @@ class GameService:
         self.state.phase = Phase.DEAD_TRICK_CALL
 
         print("\n" + "=" * 30)
-        print(f"AUCTION CLOSED!")
+        print("AUCTION CLOSED!")
         print(f"Winner: Player {winner} with {score} points.")
         print(f"New Phase: {self.state.phase}")
         print("=" * 30)
