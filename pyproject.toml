@@ -11,6 +11,8 @@ requires-python = ">=3.11"
 authors = [
   { name = "Andrea Tirenti" },
   { name = "Francesco Pietro Rosa" },
+  { name = "Francesco Mancuso" },
+]
 ]
 dependencies = [
   # CLI deps (aggiungete qui quando scegliete la libreria)
