@@ -13,7 +13,7 @@ authors = [
   { name = "Francesco Pietro Rosa" },
   { name = "Francesco Mancuso" },
 ]
-]
+
 dependencies = [
   # CLI deps (aggiungete qui quando scegliete la libreria)
 ]
