@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 from briscola5.application.game_service import GameService
 from briscola5.domain.state import Phase
 
