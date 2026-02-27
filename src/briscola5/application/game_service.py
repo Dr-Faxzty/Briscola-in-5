@@ -12,7 +12,7 @@ class GameService:
         self.state = GameState()
         self.deck = full_deck()
 
-    def setup_game(self, dealer_id, int=0):
+    def setup_game(self, dealer_id, ):
         print("Start Game")
         random.shuffle(self.deck)
         for i in range(5):
@@ -25,7 +25,6 @@ class GameService:
         print("Game Setup Complete")
         print("Current Player: ", self.state.turn.current_player)
         print("Begun Auction Phase")
-        pass
 
     def rotation(self):
         old_player = self.state.turn.current_player
@@ -37,8 +36,6 @@ class GameService:
             self.state.turn.current_player,
             "'s turn.",
         )
-        pass
-
     def debug_status(self):
         """Utility for Debug."""
         print("-" * 30)
