@@ -12,7 +12,7 @@ class GameService:
         self.state = GameState()
         self.deck = full_deck()
 
-    def setup_game(self, dealer_id, ):
+    def setup_game(self, dealer_id: int):
         print("Start Game")
         random.shuffle(self.deck)
         for i in range(5):
@@ -36,6 +36,7 @@ class GameService:
             self.state.turn.current_player,
             "'s turn.",
         )
+
     def debug_status(self):
         """Utility for Debug."""
         print("-" * 30)
