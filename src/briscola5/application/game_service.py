@@ -8,12 +8,14 @@ from briscola5.domain.trick import PlayedCard, resolve_trick, trick_points
 
 
 class GameService:
+    """Service to orchestrate the Briscola in 5 game logic and transitions."""
 
     def __init__(self):
         self.state = GameState()
         self.deck = full_deck()
 
     def setup_game(self, dealer_id: int):
+        """Initializes the deck, deals hands, and sets the starting auction player."""
         print("--- Start Game ---")
         random.shuffle(self.deck)
         for i in range(5):
@@ -22,7 +24,6 @@ class GameService:
             self.state.hands[i] = self.deck[start:end]
 
         self.state.turn.dealer_player = dealer_id
-        # Il primo a parlare nell'asta è il giocatore dopo il dealer
         self.state.turn.current_player = (dealer_id + 1) % 5
         self.state.phase = Phase.AUCTION
 
@@ -30,80 +31,67 @@ class GameService:
         print(f"Current Player (Auction): {self.state.turn.current_player}")
 
     def rotation(self):
-        """Rotazione semplice per le fasi di gioco."""
+        """Standard rotation for the current player."""
         old_player = self.state.turn.current_player
         self.state.turn.current_player = (self.state.turn.current_player + 1) % 5
         print(f"Player {old_player} played. Next: Player {self.state.turn.current_player}")
 
     def play_card(self, player_id: int, card_index: int):
-        """Gestisce la giocata di una carta e le transizioni del primo giro."""
+        """Handles playing a card and transitions between game phases."""
         if player_id != self.state.turn.current_player:
             print(f"Error: Not your turn! Expected Player {self.state.turn.current_player}")
             return
 
-        # Preleviamo la carta dalla mano e creiamo l'oggetto PlayedCard
         card = self.state.hands[player_id].pop(card_index)
         played_card = PlayedCard(player_id=player_id, card=card)
 
-        # Salviamo la giocata nel TrickState dello stato (self.state.trick.played)
         self.state.trick.played.append(played_card)
-
         print(f"Player {player_id} plays {card}")
 
-        # Se il trick è completo (5 carte)
         if self.state.current_trick_is_complete():
             if self.state.phase == Phase.DEAD_TRICK_PLAY:
-                # Fine primo giro, passiamo alla chiamata
                 self.state.phase = Phase.DEAD_TRICK_CALL
                 print("\n" + "=" * 40)
-                print("GIRO MORTO (FIRST ROUND) FINISHED")
+                print("DEAD TRICK (FIRST ROUND) FINISHED")
                 print("Auction winner must now declare Trump and Called Card.")
                 print("=" * 40)
             else:
-                # Logica per i giri successivi
                 self._finish_normal_trick()
         else:
             self.rotation()
 
     def make_call(self, suit: Suit, rank: Rank):
-        """Dichiarazione briscola/carta e risoluzione del Giro Morto."""
+        """Declares the trump suit and called card, resolving the first trick."""
         if self.state.phase != Phase.DEAD_TRICK_CALL:
             print(f"Error: Cannot call in phase {self.state.phase}")
             return
 
-        # Creiamo l'oggetto Card chiamata
         called_card_obj = Card(suit, rank)
-
-        # Aggiorniamo il CallState con i nomi corretti del tuo file state.py
         self.state.call.trump_suit = suit
         self.state.call.called_card = called_card_obj
 
         print(f"\n>>> CALL DECLARED: {called_card_obj} <<<")
 
-        # Risolviamo il trick usando i dati in self.state.trick.played
         winner_id = resolve_trick(self.state.trick.played, trump_suit=suit)
         points = trick_points(self.state.trick.played)
-
-        # Aggiorniamo lo ScoreState (player_points)
         self.state.score.player_points[winner_id] += points
 
         print(f"Player {winner_id} wins the first trick with {points} points!")
 
-        # Controllo se il socio è uscito (partner_player_internal)
         for pc in self.state.trick.played:
             if pc.card == called_card_obj:
                 self.state.call.partner_player_internal = pc.player_id
                 self.state.call.partner_revealed = True
                 print(f"!! PARTNER REVEALED: Player {pc.player_id} !!")
+
         self.state.trick.played = []
         self.state.trick.index += 1
         self.state.phase = Phase.TRICK_PLAY
         self.state.turn.current_player = winner_id
-
         print(f"New Phase: {self.state.phase}. Player {winner_id} starts next round.")
 
     def auction_phase(self, player_id: int, offer: int | None):
-        """Auction management with player skipping logic (passed)."""
+        """Manages auction bids and determines the caller."""
         auction = self.state.auction
         if player_id != self.state.turn.current_player:
             print(f"Error: Expected Player {self.state.turn.current_player}")
@@ -139,39 +127,70 @@ class GameService:
         score = self.state.auction.last_bid
         self.state.call.caller_player = winner
         self.state.call.target_points = score
-        # Let's move on to the Dead Loop
         self.state.phase = Phase.DEAD_TRICK_PLAY
-        # In the dead round everyone starts playing from the first player after the dealer
         self.state.turn.current_player = (self.state.turn.dealer_player + 1) % 5
+
         print("\n" + "=" * 30)
         print("AUCTION CONCLUDED")
         print(f"Winner: {winner} | Points: {score}")
-        print(f"Now playing: {self.state.phase}")
+        print("=" * 30)
+
+    def show_hand(self, player_id: int):
+        """Prints the current hand of a player using proper enumeration."""
+        hand = self.state.hands[player_id]
+        print("=" * 30)
+        print(f"Player {player_id} hand:")
+
+        for i, card in enumerate(hand):
+            print(f"{i}: {card}")
         print("=" * 30)
 
     def _finish_normal_trick(self):
-        """Placeholder for resolving standard tricks after the call."""
+        """Resolves a standard trick during TRICK_PLAY phase."""
+        trump = self.state.call.trump_suit
+        winner_id = resolve_trick(self.state.trick.played, trump_suit=trump)
+        points = trick_points(self.state.trick.played)
+        self.state.score.player_points[winner_id] += points
 
+        if not self.state.call.partner_revealed:
+            for pc in self.state.trick.played:
+                if pc.card == self.state.call.called_card:
+                    self.state.call.partner_player_internal = pc.player_id
+                    self.state.call.partner_revealed = True
+                    print(f"!! PARTNER DISCOVERED: Player {pc.player_id} !!")
 
-# --- Esempio di Esecuzione ---
-if __name__ == "__main__":
-    service = GameService()
-    service.setup_game(dealer_id=0)  # Dealer è P0, l'asta inizia da P1
+        print(f"Player {winner_id} wins the trick with {points} points.")
+        self.state.trick.played = []
+        self.state.trick.index += 1
+        self.state.turn.current_player = winner_id
 
-    # Flusso Asta: P1 rilancia, gli altri passano
-    service.auction_phase(1, 75)
-    service.auction_phase(2, None)
-    service.auction_phase(3, None)
-    service.auction_phase(4, None)
-    service.auction_phase(0, None)
+        if self.state.remaining_cards_in_hand(winner_id) == 0:
+            self.state.phase = Phase.GAME_OVER
 
-    # Fase: DEAD_TRICK_PLAY (Tocca a P1, il primo dopo il dealer P0)
-    service.play_card(1, 0)
-    service.play_card(2, 0)
-    service.play_card(3, 0)
-    service.play_card(4, 0)
-    service.play_card(0, 0)  # Ultimo del giro morto
+    def normal_trick_rounds(self, card_index: int, player_id: int):
+        """Entry point for executing a move in normal play phase."""
+        if player_id != self.state.turn.current_player:
+            print(f"Error: It's Player {self.state.turn.current_player}'s turn.")
+            return
+        self.play_card(player_id, card_index)
 
-    # Fase: DEAD_TRICK_CALL
-    # P1 (il vincitore) chiama ORO e ASSO
-    service.make_call(Suit.ORO, Rank.ASSO)
+    def end_game(self):
+        """Calculates final scores and declares the winning team."""
+        caller = self.state.call.caller_player
+        partner = self.state.call.partner_player_internal
+        caller_points = self.state.score.player_points[caller]
+        partner_points = self.state.score.player_points[partner] if partner is not None else 0
+        team_points = caller_points + partner_points
+
+        print("*" * 30)
+        print("\n--- FINAL RESULTS ---")
+        print(f"Caller (P{caller}): {caller_points} | Partner (P{partner}): {partner_points}")
+        print(f"Total Team: {team_points} / Target: {self.state.call.target_points}")
+
+        if team_points >= self.state.call.target_points:
+            print(">>> CALLER'S TEAM WINS! <<<")
+            self.state.call.caller_team_won = True
+        else:
+            print(">>> OPPOSING TEAM WINS! <<<")
+            self.state.call.caller_team_won = False
+        print("*" * 30)
