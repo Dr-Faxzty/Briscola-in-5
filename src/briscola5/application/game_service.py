@@ -178,19 +178,26 @@ class GameService:
         """Calculates final scores and declares the winning team."""
         caller = self.state.call.caller_player
         partner = self.state.call.partner_player_internal
-        caller_points = self.state.score.player_points[caller]
-        partner_points = self.state.score.player_points[partner] if partner is not None else 0
-        team_points = caller_points + partner_points
         target = self.state.call.target_points
+
         if caller is None or target is None:
-            print("Error: Cannot end game. Auction data missing.")
+            print("Error: Cannot end game. Auction data missing (caller or target is None).")
             return
+
+        caller_points = self.state.score.player_points[caller]
+
+        partner_points = 0
+        if partner is not None:
+            partner_points = self.state.score.player_points[partner]
+
+        team_points = caller_points + partner_points
+
         print("*" * 30)
         print("\n--- FINAL RESULTS ---")
         print(f"Caller (P{caller}): {caller_points} | Partner (P{partner}): {partner_points}")
-        print(f"Total Team: {team_points} / Target: {self.state.call.target_points}")
+        print(f"Total Team: {team_points} / Target: {target}")
 
-        if team_points >= self.state.call.target_points:
+        if team_points >= target:
             print(">>> CALLER'S TEAM WINS! <<<")
             self.state.call.caller_team_won = True
         else:
