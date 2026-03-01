@@ -42,110 +42,96 @@ class TestGameService:
         service = GameService()
         service.setup_game(dealer_id=0)
 
-        # 1. Auction
         service.auction_phase(1, 80)
         for p in [2, 3, 4, 0]:
             service.auction_phase(p, None)
         assert service.state.phase == Phase.DEAD_TRICK_PLAY
 
-        # 2. Dead Trick
         for p_id in [1, 2, 3, 4, 0]:
             service.play_card(p_id, 0)
         assert service.state.phase == Phase.DEAD_TRICK_CALL
 
-        # 3. Call
         service.make_call(Suit.ORO, Rank.ASSO)
         assert service.state.phase == Phase.TRICK_PLAY
 
-        # 4. Normal Trick (Simulate one round)
         for _ in range(5):
             p_to_play = service.state.turn.current_player
             service.normal_trick_rounds(0, p_to_play)
-        
+
         assert service.state.trick.index == 2
-        # La mano deve avere 6 carte (8 iniziali - 1 giro morto - 1 giro normale)
+
         assert len(service.state.hands[0]) == 6
 
     def test_rotation_with_skipped_players(self):
-        """Verifica che il turno salti chi ha passato e torni a P1 se P0 passa."""
+        """Make sure the turn skips whoever passes and returns to P1 if P0 passes."""
         service = GameService()
         service.setup_game(dealer_id=0)
-        
+
         service.auction_phase(1, 65)
-        service.auction_phase(2, None) # P2 fuori
+        service.auction_phase(2, None)
         service.auction_phase(3, 70)
         service.auction_phase(4, 75)
-        service.auction_phase(0, None) # P0 fuori
-        
-        # Dopo P0, il turno deve saltare P2 e tornare a P1
+        service.auction_phase(0, None)
+
         assert service.state.turn.current_player == 1
 
     def test_auction_all_pass_logic(self):
-        """Testa il caso in cui quasi tutti passano subito."""
+        """Test the case where almost everyone passes immediately."""
         service = GameService()
         service.setup_game(dealer_id=0)
-        
-        service.auction_phase(1, 65) 
-        service.auction_phase(2, None) 
-        service.auction_phase(3, None) 
+
+        service.auction_phase(1, 65)
+        service.auction_phase(2, None)
+        service.auction_phase(3, None)
         service.auction_phase(4, None)
         service.auction_phase(0, None)
-        
+
         assert service.state.phase == Phase.DEAD_TRICK_PLAY
         assert service.state.call.caller_player == 1
 
     def test_error_branches_coverage(self, capsys):
-        """Copre i rami di errore (print) per alzare la coverage."""
+
         service = GameService()
         service.setup_game(dealer_id=0)
-        
-        # Errore Turno Asta
+
         service.auction_phase(player_id=3, offer=70)
-        
-        # Errore Offerta Bassa
+
         service.auction_phase(1, 65)
         service.auction_phase(2, 60)
-        
-        # Errore Turno Giocata Carta
+
         service.play_card(player_id=4, card_index=0)
-        
-        # Errore Fase make_call
+
         service.make_call(Suit.ORO, Rank.ASSO)
-        
+
         captured = capsys.readouterr()
         assert "Error" in captured.out
 
     def test_partner_reveal_mid_game(self):
-        """Verifica la scoperta del socio e la fine del gioco (righe 179-196)."""
+        """Check the partner's discovery and the end of the game."""
         service = GameService()
         service.setup_game(dealer_id=0)
-        
-        # SETUP CORRETTO per evitare TypeError in end_game
+
         service.state.call.caller_player = 0
         service.state.call.target_points = 61
-        
-        # Setup forzato fase di gioco
+
         service.state.phase = Phase.TRICK_PLAY
         service.state.call.trump_suit = Suit.ORO
         service.state.call.called_card = Card(Suit.ORO, Rank.ASSO)
         service.state.call.partner_revealed = False
-        
-        # Prepariamo le mani con 1 carta sola per triggerare GAME_OVER dopo la giocata
+
         for i in range(5):
             service.state.hands[i] = [Card(Suit.COPPE, Rank.DUE)]
-        
-        # Il socio è il P2 e gli diamo la carta chiamata (l'Asso di Oro)
+
         service.state.hands[2] = [Card(Suit.ORO, Rank.ASSO)]
         service.state.turn.current_player = 0
-        
-        # Eseguiamo l'ultima mano
+
         for _ in range(5):
             curr = service.state.turn.current_player
             service.normal_trick_rounds(0, curr)
-            
+
         assert service.state.call.partner_revealed is True
         assert service.state.phase == Phase.GAME_OVER
-        # Ora caller_player non è più None, quindi end_game() funziona
+
         service.end_game()
 
     def test_show_hand_output(self, capsys):
