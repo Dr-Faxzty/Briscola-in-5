@@ -29,7 +29,7 @@ class TestGameService:
         """Verify that a valid bid updates the auction state."""
         service = GameService()
         service.setup_game(dealer_id=0)
-        bid_value = 65
+        bid_value = 75
 
         service.auction_phase(player_id=1, offer=bid_value)
 
@@ -67,10 +67,10 @@ class TestGameService:
         service = GameService()
         service.setup_game(dealer_id=0)
 
-        service.auction_phase(1, 65)
+        service.auction_phase(1, 75)
         service.auction_phase(2, None)
-        service.auction_phase(3, 70)
-        service.auction_phase(4, 75)
+        service.auction_phase(3, 80)
+        service.auction_phase(4, 85)
         service.auction_phase(0, None)
 
         assert service.state.turn.current_player == 1
@@ -80,7 +80,7 @@ class TestGameService:
         service = GameService()
         service.setup_game(dealer_id=0)
 
-        service.auction_phase(1, 65)
+        service.auction_phase(1, 75)
         service.auction_phase(2, None)
         service.auction_phase(3, None)
         service.auction_phase(4, None)
@@ -96,8 +96,8 @@ class TestGameService:
 
         service.auction_phase(player_id=3, offer=70)
 
-        service.auction_phase(1, 65)
-        service.auction_phase(2, 60)
+        service.auction_phase(1, 75)
+        service.auction_phase(2, 70)
 
         service.play_card(player_id=4, card_index=0)
 
@@ -112,7 +112,7 @@ class TestGameService:
         service.setup_game(dealer_id=0)
 
         service.state.call.caller_player = 0
-        service.state.call.target_points = 61
+        service.state.call.target_points = 71
 
         service.state.phase = Phase.TRICK_PLAY
         service.state.call.trump_suit = Suit.ORO
