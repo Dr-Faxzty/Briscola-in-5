@@ -101,7 +101,7 @@ class GameService:
             auction.passed[player_id] = True
             print(f"Player {player_id} PASSED.")
         else:
-            last_bid = auction.last_bid if auction.last_bid is not None else 60
+            last_bid = auction.last_bid if auction.last_bid is not None else 70
             if offer <= last_bid:
                 print(f"Error: Bid {offer} too low (Last: {last_bid})")
                 return
