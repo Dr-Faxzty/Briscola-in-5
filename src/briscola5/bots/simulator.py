@@ -2,22 +2,24 @@ import os
 import random
 import sys
 from collections import defaultdict
+from typing import DefaultDict
 
 from briscola5.application.game_service import GameService
+from briscola5.bots.base import BaseBot
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.state import Phase
 
 
-def generate_random_configuration():
+def generate_random_configuration() -> tuple[dict[int, BaseBot], dict[int, str], int]:
     num_greedy = random.randint(0, 5)
     num_random = 5 - num_greedy
 
     bot_list = ["Random"] * num_random + ["Greedy"] * num_greedy
     random.shuffle(bot_list)
 
-    bots = {}
-    bot_types = {}
+    bots: dict[int, BaseBot] = {}
+    bot_types: dict[int, str] = {}
 
     for player_id, bot_type in enumerate(bot_list):
         if bot_type == "Random":
@@ -31,15 +33,15 @@ def generate_random_configuration():
 
 
 # pylint: disable=too-many-locals, too-many-nested-blocks, too-many-branches, too-many-statements
-def game(num_games: int = 1000, show_prints: bool = True):
+def game(num_games: int = 1000, show_prints: bool = True) -> None:
     print("=" * 40)
     print(f"Bot VS Bot ({num_games} partite)")
     print("=" * 40)
 
-    win_counts = defaultdict(int)
-    bot_type_player_wins = defaultdict(int)
-    bot_type_game_wins = defaultdict(int)
-    config_stats = defaultdict(int)
+    win_counts: DefaultDict[int, int] = defaultdict(int)
+    bot_type_player_wins: DefaultDict[str, int] = defaultdict(int)
+    bot_type_game_wins: DefaultDict[str, int] = defaultdict(int)
+    config_stats: DefaultDict[int, int] = defaultdict(int)
 
     original_stdout = sys.stdout
 
@@ -75,22 +77,21 @@ def game(num_games: int = 1000, show_prints: bool = True):
                         print(f"Mossa rifiutata per il P{curr_player}. Provo le altre carte")
 
                     hand = service.state.hands[curr_player]
+
                     fallback_indices = sorted(
                         [i for i in range(len(hand)) if i != card_index],
-                        fallback_index=min(
-                            range(len(hand)), key=lambda idx, h=hand: h[idx].points
-                        ),
+                        key=lambda idx, h=hand: int(h[idx].points),
                     )
 
                     for fallback_idx in fallback_indices:
                         success = service.play_card(curr_player, fallback_idx)
                         if success:
                             if show_prints:
-                                print(f"Mossa di accettata (indice {fallback_idx}).")
+                                print(f"Mossa accettata (indice {fallback_idx}).")
                             break
 
                     if not success:
-                        raise RuntimeError("rifiutate tutte  le carte in mano.")
+                        raise RuntimeError("Rifiutate tutte le carte in mano.")
 
             if service.state.phase == Phase.DEAD_TRICK_CALL:
                 caller_id = service.state.call.caller_player
