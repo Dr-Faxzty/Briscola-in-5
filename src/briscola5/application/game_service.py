@@ -42,6 +42,9 @@ class GameService:
             print(f"Error: Not your turn! Expected Player {self.state.turn.current_player}")
             return False
         if self.state.phase is Phase.DEAD_TRICK_PLAY:
+            if self.state.call.target_points is None:
+                print("Error: Cannot play card. Target points not set in call.")
+                return False
             pt = self.state.call.target_points
             for card_played in self.state.trick.played:
                 pt += card_played.card.points
