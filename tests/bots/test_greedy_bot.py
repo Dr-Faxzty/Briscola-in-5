@@ -1,5 +1,3 @@
-import pytest
-
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.domain.card import Card, Rank, Suit
 from briscola5.domain.state import GameState, PlayedCard
