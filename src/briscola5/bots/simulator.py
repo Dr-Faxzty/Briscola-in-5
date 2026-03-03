@@ -2,11 +2,13 @@ import os
 import random
 import sys
 from collections import defaultdict
+from typing import Dict, DefaultDict
 
 from briscola5.application.game_service import GameService
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.state import Phase
+from briscola5.bots.base import BaseBot  # Assumo che esista una base comune Bot
 
 
 def generate_random_configuration():
@@ -16,8 +18,8 @@ def generate_random_configuration():
     bot_list = ["Random"] * num_random + ["Greedy"] * num_greedy
     random.shuffle(bot_list)
 
-    bots = {}
-    bot_types = {}
+    bots: Dict[int, BaseBot] = {}
+    bot_types: Dict[int, str] = {}
 
     for player_id, bot_type in enumerate(bot_list):
         if bot_type == "Random":
@@ -36,10 +38,10 @@ def game(num_games: int = 1000, show_prints: bool = True):
     print(f"Bot VS Bot ({num_games} partite)")
     print("=" * 40)
 
-    win_counts = defaultdict(int)
-    bot_type_player_wins = defaultdict(int)
-    bot_type_game_wins = defaultdict(int)
-    config_stats = defaultdict(int)
+    win_counts: DefaultDict[int, int] = defaultdict(int)
+    bot_type_player_wins: DefaultDict[str, int] = defaultdict(int)
+    bot_type_game_wins: DefaultDict[str, int] = defaultdict(int)
+    config_stats: DefaultDict[int, int] = defaultdict(int)
 
     original_stdout = sys.stdout
 
@@ -58,10 +60,7 @@ def game(num_games: int = 1000, show_prints: bool = True):
             while service.state.phase == Phase.AUCTION:
                 curr_player = service.state.turn.current_player
                 bid = bots[curr_player].make_bid(service.state)
-                if bid is None:
-                    service.auction_phase(curr_player, None)
-                else:
-                    service.auction_phase(curr_player, bid)
+                service.auction_phase(curr_player, bid)
 
             while service.state.phase == Phase.DEAD_TRICK_PLAY:
                 curr_player = service.state.turn.current_player
@@ -70,27 +69,24 @@ def game(num_games: int = 1000, show_prints: bool = True):
                 card_index = bot.choose_discard(service.state)
                 success = service.play_card(curr_player, card_index)
 
+                if not success and show_prints:
+                    print(f"Mossa rifiutata per il P{curr_player}. Provo le altre carte")
+
+                hand = service.state.hands[curr_player]
+                fallback_indices = sorted(
+                    [i for i in range(len(hand)) if i != card_index],
+                    key=lambda idx, h=hand: h[idx].points
+                )
+
+                for fallback_idx in fallback_indices:
+                    success = service.play_card(curr_player, fallback_idx)
+                    if success and show_prints:
+                        print(f"Mossa di accettata (indice {fallback_idx}).")
+                    if success:
+                        break
+
                 if not success:
-                    if show_prints:
-                        print(f"Mossa rifiutata per il P{curr_player}. Provo le altre carte")
-
-                    hand = service.state.hands[curr_player]
-                    fallback_indices = sorted(
-                        [i for i in range(len(hand)) if i != card_index],
-                        fallback_index=min(
-                            range(len(hand)), key=lambda idx, h=hand: h[idx].points
-                        ),
-                    )
-
-                    for fallback_idx in fallback_indices:
-                        success = service.play_card(curr_player, fallback_idx)
-                        if success:
-                            if show_prints:
-                                print(f"Mossa di accettata (indice {fallback_idx}).")
-                            break
-
-                    if not success:
-                        raise RuntimeError("rifiutate tutte  le carte in mano.")
+                    raise RuntimeError("Rifiutate tutte le carte in mano.")
 
             if service.state.phase == Phase.DEAD_TRICK_CALL:
                 caller_id = service.state.call.caller_player
@@ -111,10 +107,11 @@ def game(num_games: int = 1000, show_prints: bool = True):
             partner = service.state.call.partner_player_internal
             team_a = [caller, partner] if partner is not None else [caller]
 
-            if service.state.call.caller_team_won:
-                winners = team_a
-            else:
-                winners = [p for p in range(5) if p not in team_a]
+            winners = (
+                team_a
+                if service.state.call.caller_team_won
+                else [p for p in range(5) if p not in team_a]
+            )
 
             for w in winners:
                 win_counts[w] += 1
@@ -134,7 +131,6 @@ def game(num_games: int = 1000, show_prints: bool = True):
             sys.stdout = original_stdout
             print(f"Errore alla partita {game_idx}: {e}")
             continue
-
         finally:
             if not show_prints:
                 sys.stdout = original_stdout
@@ -147,11 +143,11 @@ def game(num_games: int = 1000, show_prints: bool = True):
     for p in sorted(win_counts.keys()):
         print(f"Player {p}: {win_counts[p]} vittorie")
 
-    print("\n[ Vittorie random e boot")
+    print("\n[ Vittorie random e bot ]")
     for t, cnt in bot_type_player_wins.items():
         print(f"{t}: {cnt} punti vittoria totali")
 
-    print("\n[ Vittorie a livello di partita:")
+    print("\n[ Vittorie a livello di partita: ]")
     for t in ["Greedy", "Random", "Tie"]:
         cnt = bot_type_game_wins[t]
         perc = (cnt / num_games) * 100
