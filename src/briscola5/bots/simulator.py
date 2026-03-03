@@ -2,7 +2,7 @@ import os
 import random
 import sys
 from collections import defaultdict
-from typing import DefaultDict, Dict
+from typing import DefaultDict, Dict, List
 
 from briscola5.application.game_service import GameService
 from briscola5.bots.base import BaseBot
@@ -11,7 +11,8 @@ from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.state import Phase
 
 
-def generate_random_configuration():
+def generate_random_configuration() -> tuple[Dict[int, BaseBot], Dict[int, str], int]:
+    """Genera una configurazione casuale di 5 bot tra Greedy e Random."""
     num_greedy = random.randint(0, 5)
     num_random = 5 - num_greedy
 
@@ -26,14 +27,14 @@ def generate_random_configuration():
             bots[player_id] = RandomBot(player_id=player_id)
         else:
             bots[player_id] = GreedyBot(player_id=player_id)
-
         bot_types[player_id] = bot_type
 
     return bots, bot_types, num_greedy
 
 
 # pylint: disable=too-many-locals, too-many-nested-blocks, too-many-branches, too-many-statements
-def game(num_games: int = 1000, show_prints: bool = True):
+def game(num_games: int = 1000, show_prints: bool = True) -> None:
+    """Simula num_games partite di Briscola in 5."""
     print("=" * 40)
     print(f"Bot VS Bot ({num_games} partite)")
     print("=" * 40)
@@ -50,9 +51,11 @@ def game(num_games: int = 1000, show_prints: bool = True):
 
         if not show_prints:
             # pylint: disable=consider-using-with
-            sys.stdout = open(os.devnull, "w", encoding="utf-8")
-        try:
+            sys.stdout = open(
+                os.devnull, "w", encoding="utf-8"
+            )  # pylint: disable=consider-using-with
 
+        try:
             service.setup_game(dealer_id=game_idx % 5)
             bots, bot_types, num_greedy = generate_random_configuration()
             config_stats[num_greedy] += 1
@@ -69,27 +72,24 @@ def game(num_games: int = 1000, show_prints: bool = True):
                 card_index = bot.choose_discard(service.state)
                 success = service.play_card(curr_player, card_index)
 
-                if not success and show_prints:
-                    print(f"Mossa rifiutata per il P{curr_player}. Provo le altre carte")
-
-                hand = service.state.hands[curr_player]
-                fallback_indices = sorted(
-                    [i for i in range(len(hand)) if i != card_index],
-                    key=lambda idx, h=hand: h[idx].points,
-                )
-
-                for fallback_idx in fallback_indices:
-                    success = service.play_card(curr_player, fallback_idx)
-                    if success and show_prints:
-                        print(f"Mossa di accettata (indice {fallback_idx}).")
-                    if success:
-                        break
-
                 if not success:
-                    raise RuntimeError("Rifiutate tutte le carte in mano.")
+                    hand = service.state.hands[curr_player]
+                    fallback_indices = sorted(
+                        [i for i in range(len(hand)) if i != card_index],
+                        key=lambda idx, h=hand: h[idx].points,  # type: ignore[misc]
+                    )
+                    for fallback_idx in fallback_indices:
+                        if service.play_card(curr_player, fallback_idx):
+                            success = True
+                            break
+
+                    if not success:
+                        raise RuntimeError(f"P{curr_player} non ha carte valide per lo scarto.")
 
             if service.state.phase == Phase.DEAD_TRICK_CALL:
                 caller_id = service.state.call.caller_player
+                if caller_id is None:
+                    continue
                 suit, rank = bots[caller_id].declare_trump_and_card(service.state)
                 service.make_call(suit, rank)
 
@@ -105,9 +105,15 @@ def game(num_games: int = 1000, show_prints: bool = True):
 
             caller = service.state.call.caller_player
             partner = service.state.call.partner_player_internal
-            team_a = [caller, partner] if partner is not None else [caller]
 
-            winners = (
+            if caller is None:
+                continue
+
+            team_a: List[int] = [caller]
+            if partner is not None:
+                team_a.append(partner)
+
+            winners: List[int] = (
                 team_a
                 if service.state.call.caller_team_won
                 else [p for p in range(5) if p not in team_a]
@@ -126,8 +132,8 @@ def game(num_games: int = 1000, show_prints: bool = True):
                 bot_type_game_wins["Random"] += 1
             else:
                 bot_type_game_wins["Tie"] += 1
-        # pylint: disable=broad-exception-caught
-        except Exception as e:
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
             sys.stdout = original_stdout
             print(f"Errore alla partita {game_idx}: {e}")
             continue
@@ -137,7 +143,7 @@ def game(num_games: int = 1000, show_prints: bool = True):
 
     print("\nStatistiche configurazioni: ")
     for g in sorted(config_stats.keys()):
-        print(f"{g} Greedy vs {5-g} Random: {config_stats[g]} partite")
+        print(f"{g} Greedy vs {5 - g} Random: {config_stats[g]} partite")
 
     print("\nVittorie per giocatore")
     for p in sorted(win_counts.keys()):
@@ -150,9 +156,8 @@ def game(num_games: int = 1000, show_prints: bool = True):
     print("\n[ Vittorie a livello di partita: ]")
     for t in ["Greedy", "Random", "Tie"]:
         cnt = bot_type_game_wins[t]
-        perc = (cnt / num_games) * 100
+        perc = (cnt / num_games * 100) if num_games > 0 else 0
         print(f"{t}: {cnt} ({perc:.1f}%)")
-
     print("=" * 40)
 
 
