@@ -2,13 +2,13 @@ import os
 import random
 import sys
 from collections import defaultdict
-from typing import Dict, DefaultDict
+from typing import DefaultDict, Dict
 
 from briscola5.application.game_service import GameService
+from briscola5.bots.base import BaseBot
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.state import Phase
-from briscola5.bots.base import BaseBot
 
 
 def generate_random_configuration():
