@@ -8,7 +8,7 @@ from briscola5.application.game_service import GameService
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.state import Phase
-from briscola5.bots.base import BaseBot  # Assumo che esista una base comune Bot
+from briscola5.bots.base import BaseBot
 
 
 def generate_random_configuration():
@@ -75,7 +75,7 @@ def game(num_games: int = 1000, show_prints: bool = True):
                 hand = service.state.hands[curr_player]
                 fallback_indices = sorted(
                     [i for i in range(len(hand)) if i != card_index],
-                    key=lambda idx, h=hand: h[idx].points
+                    key=lambda idx, h=hand: h[idx].points,
                 )
 
                 for fallback_idx in fallback_indices:
