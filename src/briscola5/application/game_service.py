@@ -36,15 +36,20 @@ class GameService:
         self.state.turn.current_player = (self.state.turn.current_player + 1) % 5
         print(f"Player {old_player} played. Next: Player {self.state.turn.current_player}")
 
-    def play_card(self, player_id: int, card_index: int):
+    def play_card(self, player_id: int, card_index: int) -> bool:
         """Handles playing a card and transitions between game phases."""
         if player_id != self.state.turn.current_player:
             print(f"Error: Not your turn! Expected Player {self.state.turn.current_player}")
-            return
-
+            return False
+        if self.state.phase is Phase.DEAD_TRICK_PLAY:
+            pt = self.state.call.target_points
+            for card_played in self.state.trick.played:
+                pt += card_played.card.points
+            if self.state.hands[player_id][card_index].points + pt > 120:
+                print(f"Error: Cannot play {self.state.hands[player_id][card_index]}")
+                return False
         card = self.state.hands[player_id].pop(card_index)
         played_card = PlayedCard(player_id=player_id, card=card)
-
         self.state.trick.played.append(played_card)
         print(f"Player {player_id} plays {card}")
 
@@ -59,6 +64,7 @@ class GameService:
                 self._finish_normal_trick()
         else:
             self.rotation()
+        return True
 
     def make_call(self, suit: Suit, rank: Rank):
         """Declares the trump suit and called card, resolving the first trick."""
