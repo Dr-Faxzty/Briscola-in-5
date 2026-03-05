@@ -1,7 +1,5 @@
 from unittest.mock import patch
 
-import pytest
-
 from briscola5.cli.base_cli import CLI
 from briscola5.domain.state import Phase
 
