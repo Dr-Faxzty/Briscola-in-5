@@ -211,9 +211,7 @@ class CLI:
             pts_team, pts_others = res
             target = self.service.state.call.target_points
             print(f"\nTarget: {target} | Team: {pts_team} | Defense: {pts_others}")
-            msg = (
-                " TEAM WINS!" if self.service.state.call.caller_team_won else " DEFENSE WINS!"
-            )
+            msg = " TEAM WINS!" if self.service.state.call.caller_team_won else " DEFENSE WINS!"
             print(msg)
 
     def display_hand(self):
