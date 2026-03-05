@@ -12,7 +12,6 @@ from briscola5.domain.state import Phase
 
 
 def generate_random_configuration() -> tuple[Dict[int, BaseBot], Dict[int, str], int]:
-    """Genera una configurazione casuale di 5 bot tra Greedy e Random."""
     num_greedy = random.randint(0, 5)
     num_random = 5 - num_greedy
 
@@ -34,7 +33,6 @@ def generate_random_configuration() -> tuple[Dict[int, BaseBot], Dict[int, str],
 
 # pylint: disable=too-many-locals, too-many-nested-blocks, too-many-branches, too-many-statements
 def game(num_games: int = 1000, show_prints: bool = True) -> None:
-    """Simula num_games partite di Briscola in 5."""
     print("=" * 40)
     print(f"Bot VS Bot ({num_games} partite)")
     print("=" * 40)

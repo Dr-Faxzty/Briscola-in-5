@@ -48,6 +48,7 @@ class CLI:
         input("\nPress ENTER to start the game...")
 
     def _handle_human_bid(self, minimum: int, current: int):
+        self.display_hand()
         while True:
             prompt = f"Your turn! Enter a bid ({minimum}-120) or 'pass': "
             choice = input(prompt).strip().lower()
