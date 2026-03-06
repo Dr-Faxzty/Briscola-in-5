@@ -18,7 +18,9 @@ class RandomBot(BaseBot):
         if random.choice([True, False]):
             return None
 
-        return random.randint(min_bid, 120)
+        max_possible_bid = min(min_bid + random.randint(0, 10), 120)
+
+        return random.randint(min_bid, max_possible_bid)
 
     def choose_discard(self, state: GameState) -> int:
 
