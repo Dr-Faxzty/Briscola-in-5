@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import random
-import time
 
 from briscola5.domain.card import Card, Rank, Suit, full_deck
 from briscola5.domain.color_cli import Col
@@ -24,7 +23,6 @@ class GameService:
             start = i * 8
             end = start + 8
             self.state.hands[i] = self.deck[start:end]
-
         self.state.turn.dealer_player = dealer_id
         self.state.turn.current_player = (dealer_id + 1) % 5
         self.state.phase = Phase.AUCTION
@@ -62,7 +60,6 @@ class GameService:
         card = self.state.hands[player_id].pop(card_index)
         played_card = PlayedCard(player_id=player_id, card=card)
         self.state.trick.played.append(played_card)
-        time.sleep(1)
         print(f"{Col.BOLD}Player {player_id} plays {card}{Col.RESET}")
 
         if self.state.current_trick_is_complete():
@@ -116,7 +113,6 @@ class GameService:
         if player_id != self.state.turn.current_player:
             print(f"{Col.RED}Error: Expected Player {self.state.turn.current_player}{Col.RESET}")
             return
-        time.sleep(1)
         if offer is None:
             auction.passed[player_id] = True
             print(f"{Col.RED}Player {player_id} PASSED.{Col.RESET}")
@@ -132,9 +128,9 @@ class GameService:
         if auction.active_players_count() == 1 and auction.last_bidder is not None:
             self._conclude_auction()
         elif auction.active_players_count() == 0 and auction.last_bidder is None:
+
             print(f"{Col.RED}Error: No valid bids placed. Cannot conclude auction.{Col.RESET}")
             print(f"{Col.RED}All players passed. Restarting game...{Col.RESET}")
-            time.sleep(2)
             self.setup_game(self.state.turn.dealer_player)
             return
         else:
@@ -160,7 +156,6 @@ class GameService:
         print(f"{Col.BOLD}AUCTION CONCLUDED{Col.RESET}")
         print(f"{Col.GREEN}Winner: {winner} | Points: {score}{Col.RESET}")
         print("=" * 30)
-        time.sleep(2)
 
     def show_hand(self, player_id: int):
         """Prints the current hand of a player using proper enumeration."""
