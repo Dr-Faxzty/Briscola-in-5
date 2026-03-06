@@ -5,18 +5,8 @@ from briscola5.application.game_service import GameService
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.card import Rank, Suit
+from briscola5.domain.color_cli import Col
 from briscola5.domain.state import Phase
-
-
-class Col:
-    CYAN = "\033[96m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    MAGENTA = "\033[95m"
-    BLUE = "\033[94m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
 
 
 class CLI:
