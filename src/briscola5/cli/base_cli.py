@@ -5,10 +5,8 @@ from briscola5.application.game_service import GameService
 from briscola5.bots.greedy_bot import GreedyBot
 from briscola5.bots.random_bot import RandomBot
 from briscola5.domain.card import Rank, Suit
-from briscola5.domain.state import Phase
 from briscola5.domain.color_cli import Col
-
-
+from briscola5.domain.state import Phase
 
 
 class CLI:

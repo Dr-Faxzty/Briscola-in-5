@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import random
-
 import time
+
 from briscola5.domain.card import Card, Rank, Suit, full_deck
+from briscola5.domain.color_cli import Col
 from briscola5.domain.state import GameState, Phase
 from briscola5.domain.trick import PlayedCard, resolve_trick, trick_points
-from briscola5.domain.color_cli import Col
+
+
 class GameService:
     """Service to orchestrate the Briscola in 5 game logic and transitions."""
 
@@ -53,7 +55,9 @@ class GameService:
                 pt += card_played.card.points
             if self.state.hands[player_id][card_index].points + pt > 120:
                 print(f"{Col.RED}Error:{Col.BOLD}")
-                print(f"{Col.RED}Cannot play {self.state.hands[player_id][card_index]}{Col.RESET}")
+                print(
+                    f"{Col.RED}Cannot play {self.state.hands[player_id][card_index]}{Col.RESET}"
+                )
                 return False
         card = self.state.hands[player_id].pop(card_index)
         played_card = PlayedCard(player_id=player_id, card=card)
@@ -180,7 +184,9 @@ class GameService:
                 if pc.card == self.state.call.called_card:
                     self.state.call.partner_player_internal = pc.player_id
                     self.state.call.partner_revealed = True
-                    print(f"{Col.MAGENTA}!PARTNER DISCOVERED: Player {pc.player_id} !!{Col.RESET}")
+                    print(
+                        f"{Col.MAGENTA}!PARTNER DISCOVERED: Player {pc.player_id} !!{Col.RESET}"
+                    )
 
         print(f"{Col.GREEN}Player {winner_id} wins the trick with {points} points.{Col.RESET}")
         self.state.trick.played = []
@@ -193,7 +199,9 @@ class GameService:
     def normal_trick_rounds(self, card_index: int, player_id: int):
         """Entry point for executing a move in normal play phase."""
         if player_id != self.state.turn.current_player:
-            print(f"{Col.RED}Error:It's Player{self.state.turn.current_player}'s turn.{Col.RESET}")
+            print(
+                f"{Col.RED}Error:It's Player{self.state.turn.current_player}'s turn.{Col.RESET}"
+            )
             return
         self.play_card(player_id, card_index)
 
