@@ -83,10 +83,11 @@ class GameService:
             return False
 
         called_card_obj = Card(suit, rank)
-        if (
-            called_card_obj in self.state.hands[self.state.call.caller_player]
-            and self.state.call.caller_player is not None
-        ):
+        if self.state.call.caller_player is None:
+            print(f"{Col.RED}Error: Cannot make call.{Col.RESET}")
+            print(f"{Col.RED}Caller player not set in state.{Col.RESET}")
+            return False
+        if called_card_obj in self.state.hands[self.state.call.caller_player]:
             print(
                 f"{Col.RED}Error: Called card {called_card_obj} are in caller's hand!{Col.RESET}"
             )
