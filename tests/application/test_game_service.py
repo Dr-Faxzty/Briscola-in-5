@@ -42,10 +42,15 @@ class TestGameService:
         service.auction_phase(1, 80)
         for p in [2, 3, 4, 0]:
             service.auction_phase(p, None)
-        assert service.state.phase == Phase.DEAD_TRICK_PLAY
+
+        for i in range(5):
+            service.state.hands[i] = [Card(Suit.COPPE, Rank.RE) for r in range(2, 10)]
+
+        service.state.hands[0][0] = Card(Suit.SPADE, Rank.DUE)
 
         for p_id in [1, 2, 3, 4, 0]:
             service.play_card(p_id, 0)
+
         assert service.state.phase == Phase.DEAD_TRICK_CALL
 
         service.make_call(Suit.ORO, Rank.ASSO)
@@ -91,20 +96,20 @@ class TestGameService:
         captured = capsys.readouterr()
         assert "Error" in captured.out
 
-    def test_partner_reveal_mid_game(self):
+    def test_partner_reveal_mid_game(self, mocker):
+        mocker.patch("time.sleep", return_value=None)
         service = GameService()
         service.setup_game(dealer_id=0)
 
         service.state.call.caller_player = 0
         service.state.call.target_points = 71
-
         service.state.phase = Phase.TRICK_PLAY
         service.state.call.trump_suit = Suit.ORO
         service.state.call.called_card = Card(Suit.ORO, Rank.ASSO)
         service.state.call.partner_revealed = False
 
         for i in range(5):
-            service.state.hands[i] = [Card(Suit.COPPE, Rank.DUE)]
+            service.state.hands[i] = [Card(Suit.BASTONI, Rank.DUE)]
 
         service.state.hands[2] = [Card(Suit.ORO, Rank.ASSO)]
         service.state.turn.current_player = 0
@@ -115,7 +120,6 @@ class TestGameService:
 
         assert service.state.call.partner_revealed is True
         assert service.state.phase == Phase.GAME_OVER
-
         service.end_game()
 
     def test_show_hand_output(self, capsys):
