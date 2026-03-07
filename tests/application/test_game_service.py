@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import pytest
+
 from briscola5.application.game_service import GameService
 from briscola5.domain.card import Card, Rank, Suit
 from briscola5.domain.state import Phase
-import pytest
+
 
 class TestGameService:
 
@@ -42,17 +44,17 @@ class TestGameService:
         service.auction_phase(1, 80)
         for p in [2, 3, 4, 0]:
             service.auction_phase(p, None)
-        
+
         for i in range(5):
             service.state.hands[i] = [Card(Suit.COPPE, Rank.RE) for r in range(2, 10)]
-        
+
         service.state.hands[0][0] = Card(Suit.SPADE, Rank.DUE)
 
         for p_id in [1, 2, 3, 4, 0]:
             service.play_card(p_id, 0)
-        
+
         assert service.state.phase == Phase.DEAD_TRICK_CALL
-        
+
         service.make_call(Suit.ORO, Rank.ASSO)
         assert service.state.phase == Phase.TRICK_PLAY
 
