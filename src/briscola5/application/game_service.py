@@ -92,6 +92,11 @@ class GameService:
                 f"{Col.RED}Error: Called card {called_card_obj} are in caller's hand!{Col.RESET}"
             )
             return False
+        for card_played in self.state.trick.played:
+            if card_played.card == called_card_obj:
+                print(f"{Col.RED}Error: Called card {called_card_obj}{Col.RESET}")
+                print(f"{Col.RED}is already played in the first trick!{Col.RESET}")
+                return False
         self.state.call.trump_suit = suit
         self.state.call.called_card = called_card_obj
 
