@@ -76,7 +76,7 @@ class GameService:
             self.rotation()
         return True
 
-    def make_call(self, suit: Suit, rank: Rank)->bool:
+    def make_call(self, suit: Suit, rank: Rank) -> bool:
         """Declares the trump suit and called card, resolving the first trick."""
         if self.state.phase != Phase.DEAD_TRICK_CALL:
             print(f"{Col.RED}Error: Cannot call in phase {self.state.phase}{Col.RESET}")
@@ -84,7 +84,9 @@ class GameService:
 
         called_card_obj = Card(suit, rank)
         if called_card_obj in self.state.hands[self.state.call.caller_player]:
-            print(f"{Col.RED}Error: Called card {called_card_obj} are in caller's hand!{Col.RESET}")
+            print(
+                f"{Col.RED}Error: Called card {called_card_obj} are in caller's hand!{Col.RESET}"
+            )
             return False
         self.state.call.trump_suit = suit
         self.state.call.called_card = called_card_obj
