@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
-
 from briscola5.application.game_service import GameService
 from briscola5.domain.card import Card, Rank, Suit
 from briscola5.domain.state import Phase
