@@ -16,7 +16,7 @@ class Player:
         elif "press enter" in text:
             return ""
         elif "bid" in text:
-            return "120"
+            return "pass"
         elif "seed" in text:
             return "0"
         elif "card number" in text:
